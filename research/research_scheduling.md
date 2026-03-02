@@ -403,4 +403,46 @@ Phase 4: • Graphical template editor
 
 ------------------------------------------------------------------------
 
+# 17. Task Tracking Across Sessions
+
+To support incremental development across multiple Copilot-assisted
+coding sessions, a dedicated `tasks.md` file will be maintained in the
+repository root (or a designated project management location).
+
+## Purpose
+
+• Provide a persistent, human-readable record of project progress\
+• Enable any Copilot session to pick up where the last one left off\
+• Track phases, tasks, and subtasks with clear status indicators
+
+## Structure
+
+The file will be organized hierarchically:
+
+1. **Phases** — aligned with the phased development plan (Section 14)\
+2. **Tasks** — discrete work items within each phase\
+3. **Subtasks** — granular steps within each task
+
+## Status Tracking
+
+Each task and subtask will carry a status:
+
+• `[ ]` — Not started\
+• `[~]` — In progress\
+• `[x]` — Complete\
+• `[!]` — Blocked (with note)
+
+## Session Workflow
+
+At the start of each Copilot session:\
+1. Read `tasks.md` to understand current state\
+2. Identify the next actionable task or subtask\
+3. Work on it, updating status as items are completed\
+4. At end of session, ensure `tasks.md` reflects all progress
+
+This ensures continuity and prevents duplicated or missed work across
+sessions.
+
+------------------------------------------------------------------------
+
 End of comprehensive research document.
