@@ -1,0 +1,140 @@
+# rM Template Manager — code style
+#
+# This file is the single source of truth for formatting and style severities.
+# Rules recorded here are [build] rules: EnforceCodeStyleInBuild makes them real
+# build diagnostics, and TreatWarningsAsErrors makes them fail CI.
+#
+# See docs/coding-standards.md §14 and ADR-0010.
+# Change rule severities here, never by lowering AnalysisMode.
+
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+tab_width = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{md,markdown}]
+# Trailing whitespace is significant in Markdown (hard line break).
+trim_trailing_whitespace = false
+
+[*.{json,yml,yaml,csproj,props,targets,xml,xaml}]
+indent_size = 2
+
+[*.{template,json}]
+# Device-bound files: UTF-8 without BOM, LF only. Asserted by test, not just style.
+end_of_line = lf
+insert_final_newline = false
+
+[*.cs]
+
+#### Indentation (coding-standards §14.1) ####
+
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+
+#### Braces — Allman, opening brace on its own line (coding-standards §14.2) ####
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+# Require braces even on single-statement blocks — no brace-less if bodies.
+csharp_prefer_braces = true:warning
+
+#### Parentheses — liberal, for order-of-execution clarity (coding-standards §14.3) ####
+#
+# LOAD-BEARING. At their defaults these options make IDE0047 report deliberate
+# clarifying parentheses as "unnecessary parentheses" to be removed. always_for_clarity
+# inverts that: the analyzer stops objecting and instead suggests adding parentheses
+# where precedence is non-obvious.
+
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
+# Kept strict so genuinely redundant parentheses around a single operand are discouraged.
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
+
+#### Language rules mirroring the coding standard ####
+
+# var only when the type is evident from the right-hand side (§3)
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
+
+# Immutability and expression-bodied preferences (§3)
+dotnet_style_readonly_field = true:warning
+csharp_prefer_readonly_struct = true:suggestion
+csharp_style_prefer_readonly_struct_member = true:suggestion
+
+# Null handling (§2.1) — nullable is on; prefer modern null operators
+csharp_style_throw_expression = true:suggestion
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_null_propagation = true:warning
+
+# Pattern matching (§3)
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_pattern_matching_over_as_with_null_check = true:warning
+csharp_style_prefer_switch_expression = true:suggestion
+
+# Naming/visibility hygiene
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+# using directives outside the namespace, sorted, System first
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# No #region (§3)
+dotnet_diagnostic.IDE0005.severity = warning
+
+#### Naming conventions ####
+
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_start_with_i.symbols = interface_symbol
+dotnet_naming_rule.interfaces_start_with_i.style = prefix_i_pascal
+dotnet_naming_symbols.interface_symbol.applicable_kinds = interface
+dotnet_naming_style.prefix_i_pascal.required_prefix = I
+dotnet_naming_style.prefix_i_pascal.capitalization = pascal_case
+
+dotnet_naming_rule.types_are_pascal_case.severity = warning
+dotnet_naming_rule.types_are_pascal_case.symbols = type_symbol
+dotnet_naming_rule.types_are_pascal_case.style = pascal
+dotnet_naming_symbols.type_symbol.applicable_kinds = class,struct,enum,delegate
+dotnet_naming_style.pascal.capitalization = pascal_case
+
+dotnet_naming_rule.private_fields_are_camel_underscore.severity = warning
+dotnet_naming_rule.private_fields_are_camel_underscore.symbols = private_field_symbol
+dotnet_naming_rule.private_fields_are_camel_underscore.style = underscore_camel
+dotnet_naming_symbols.private_field_symbol.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbol.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.required_prefix = _
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+#### Async correctness (§5) — reinforced by VS Threading Analyzers ####
+
+dotnet_diagnostic.CA2007.severity = none          # ConfigureAwait: handled per-layer, see §5
+dotnet_diagnostic.VSTHRD002.severity = error      # no synchronous blocking on async
+dotnet_diagnostic.VSTHRD103.severity = error      # call async methods when in async context
+dotnet_diagnostic.VSTHRD100.severity = error      # avoid async void
+
+#### Banned APIs (§13) — messages come from BannedSymbols.txt ####
+
+dotnet_diagnostic.RS0030.severity = error
+
+[tests/**/*.cs]
+# Tests may construct fixtures freely; documentation rules do not apply.
+dotnet_diagnostic.CA1707.severity = none          # underscores in test method names are intended
+dotnet_diagnostic.CA2007.severity = none

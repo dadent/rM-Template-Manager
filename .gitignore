@@ -1,0 +1,63 @@
+## .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+artifacts/
+publish/
+*.binlog
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+## Test and coverage output
+[Tt]est[Rr]esult*/
+coverage*
+*.coverage
+*.coveragexml
+*.trx
+*.opencover.xml
+BenchmarkDotNet.Artifacts/
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+*.nuget.props
+*.nuget.targets
+
+## OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Generated review renderings
+#
+# docs/review/*.html is a rendered convenience copy of the Markdown in docs/.
+# Committing it would create a second source of truth that silently drifts from
+# the Markdown it was generated from. The Markdown is authoritative.
+docs/review/*.html
+
+## Local secrets and device state — never commit
+#
+# No credential belongs in this repository. The SSH password is entered per
+# session and never persisted (PRD 3.2).
+*.env
+secrets.json
+appsettings.*.local.json
+known_device_hosts
