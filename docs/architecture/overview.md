@@ -15,6 +15,7 @@ reviewed and approved **before** implementation begins. Individual decisions liv
 | This document | How is the system structured? |
 | [ADRs](decisions/) | Which technologies and structures, and *why*? |
 | [`coding-standards.md`](../coding-standards.md) | How is code in this repository written? |
+| [`template-format-findings.md`](../template-format-findings.md) | What does the device's template format *actually* contain, versus what the PRD says? |
 
 Each is maintained separately and on its own cadence. Keeping them apart is deliberate —
 see [ADR-0001](decisions/0001-record-architecture-decisions.md).
@@ -168,21 +169,36 @@ from day one, with no device attached.
 
 ## 6. Phase 0: prerequisites and the walking skeleton
 
-### 6.0 Prerequisite — refresh the template corpus
+### 6.0 Prerequisite — refresh the template corpus ✔ done 2026-11-01
 
-**Before any MVP work, and before [ADR-0006](decisions/0006-expression-grammar-scope.md)
-can be accepted**, re-harvest the template corpus from the device on its current firmware.
+Carried out across two consecutive device firmware updates, the second confirmed as
+**3.29.1.0**. **Result: the format did not drift — the corpus is byte-for-byte identical
+across all three captures**, so
+[ADR-0006](decisions/0006-expression-grammar-scope.md) is no longer blocked and its
+conclusions hold.
 
-The existing 65-template corpus dates from March 2026 and did not record the firmware
-version it came from; device firmware has moved several releases since. Because the
-expression grammar, the item-type set, and the validation rules are all derived from that
-corpus, stale fixtures would propagate into the Domain design. Snapshots are stored per
-firmware version so format drift stays visible, and the harvest is scripted in `tools/`
-because it must be repeated after every firmware update. Full procedure: ADR-0006,
-"Required corpus refresh before acceptance."
+It was still worth doing, and produced three things the design needed:
 
-This step also exercises SSH/SCP against the real device before any application code
-exists, which de-risks [ADR-0005](decisions/0005-ssh-library.md) early.
+1. **Confirmation** that the evidence underpinning the expression grammar is current.
+2. **A corrected measurement scope in ADR-0006** — some counts had conflated stock with
+   the owner's custom templates. Stock and user are now stored separately.
+3. **A real correction to [ADR-0007](decisions/0007-preview-rendering.md).** The corpus
+   contains cubic Bézier commands, closed subpaths, fill colour, stroke colour with
+   alpha, and an antialiasing hint — none of which the original `RenderPlan` shape could
+   carry. Caught before a line of rendering code existed. See
+   [`template-format-findings.md`](../template-format-findings.md).
+
+Snapshots live in `research/reference_material/corpus/<date>_firmware-<version>/`, one per
+firmware, never overwritten, so drift stays diffable. The harvest is scripted in `tools/`
+because it must be repeated after **every** firmware update.
+
+It also caught a bug in the harvest script itself: it would have labelled snapshots with
+the host OS version (`6.0.112`) rather than the firmware release (`3.29.1.0`), because
+`/etc/os-release` carries both and the script preferred the wrong field. Fixed.
+
+**Open item:** the harvest script has still never completed a successful run — all three
+captures were taken manually. The detection bug is fixed, but the script must be exercised
+against a device at the next firmware update before it can be relied on.
 
 ### 6.1 The walking skeleton (first implementation milestone)
 
@@ -262,8 +278,9 @@ are reserved for genuine faults.
 **Nine of ten decisions are confirmed by the project owner; none is formally `Accepted`
 yet.** Per [ADR-0001](decisions/0001-record-architecture-decisions.md), acceptance happens
 by human approval in a PR review — so every ADR below flips from `Proposed` to `Accepted`
-in the first PR that commits this document set. ADR-0006 is the exception and stays
-`Proposed` until its evidence is refreshed.
+in the first PR that commits this document set. ADR-0006 was the exception; its corpus
+evidence was refreshed on 2026-11-01 and confirmed current as of firmware 3.29.1.0, so it
+is now ready for review alongside the rest.
 
 | ADR | Decision | Status |
 |---|---|---|
@@ -272,7 +289,7 @@ in the first PR that commits this document set. ADR-0006 is the exception and st
 | [0003](decisions/0003-wpf-desktop-shell.md) | WPF for the desktop shell | Confirmed 2026-10-16 |
 | [0004](decisions/0004-apache-2-license.md) | Apache-2.0 license | Confirmed 2026-10-16 |
 | [0005](decisions/0005-ssh-library.md) | SSH.NET for transport, SCP first | Confirmed 2026-10-21 |
-| [0006](decisions/0006-expression-grammar-scope.md) | Expression grammar scope | **Proposed — blocked on corpus refresh (§6.0)** |
+| [0006](decisions/0006-expression-grammar-scope.md) | Expression grammar scope | Proposed — **unblocked**; corpus current as of firmware 3.29.1.0 |
 | [0007](decisions/0007-preview-rendering.md) | Pure `RenderPlan`, drawn by WPF | Confirmed 2026-10-21 |
 | [0008](decisions/0008-installer-packaging.md) | Minimal distribution; no installer | Confirmed 2026-10-21 (revised once) |
 | [0009](decisions/0009-two-model-ai-review-chain.md) | Iterative two-model AI review | Confirmed 2026-10-21 |
