@@ -1,0 +1,80 @@
+{
+  "snapshotId": "2026-03-01_firmware-unknown",
+  "capturedAtUtc": "2026-03-01T00:00:00Z",
+  "capturedAtPrecision": "date-only",
+  "capturedBy": "manual scp, before tools/Get-DeviceTemplateCorpus.ps1 existed",
+  "deviceModel": "reMarkable Paper Pro (imx8mm-ferrari)",
+  "deviceTemplatePath": "/usr/share/remarkable/templates",
+
+  "firmwareVersion": null,
+  "firmwareVersionNote": "Not recorded at capture time, and now unrecoverable -- the device has since been updated twice. This omission is the defect that motivated ADR-0006's corpus-refresh requirement: a corpus whose firmware is unknown cannot support any argument about format drift. The content has since been confirmed current as of firmware 3.29.1.0; see verifications below.",
+
+  "counts": {
+    "stockTemplates": 65,
+    "userTemplates": 3,
+    "manifestEntries": 79,
+    "manifestBytes": 11949
+  },
+
+  "integrity": {
+    "algorithm": "sha256",
+    "aggregate": "d23ec580327e03086bc81448cc93912c",
+    "aggregateScope": "sha256 of the concatenated per-file sha256 digests of stock/*.template plus templates.json, filenames sorted; truncated to 32 hex chars",
+    "perFileHashesOmitted": "Git already content-hashes every file in this snapshot, so duplicating per-file digests here would add maintenance burden with no benefit. The aggregate exists because it is a single value comparable across captures."
+  },
+
+  "contents": {
+    "stock/": "The 65 templates reMarkable ships. All declare \"author\": \"reMarkable\".",
+    "user/": "The owner's 3 custom templates. All declare \"author\": \"DAdent\". Separated from stock because the original ADR-0006 measurements accidentally conflated the two.",
+    "templates.json": "The pristine stock manifest, with no user entries merged in. 79 entries for 65 files: a filename may appear twice, once per orientation."
+  },
+
+  "verifications": [
+    {
+      "sequence": 1,
+      "verifiedAtUtc": "2026-11-01T00:00:00Z",
+      "trigger": "firmware update applied; the update wiped the owner's custom templates and he re-applied them",
+      "firmwareVersion": null,
+      "firmwareVersionNote": "Not captured. This is the release immediately preceding 3.29.1.0; a second update was already downloaded and awaiting reboot at the time of this capture, so the running firmware was the earlier one. Exact version unknown.",
+      "method": "manual scp of /usr/share/remarkable/templates; the owner's custom templates were then removed and the saved-aside stock templates.json restored, to recover a pristine stock state for comparison",
+      "result": "IDENTICAL",
+      "detail": {
+        "filesAdded": 0,
+        "filesRemoved": 0,
+        "filesChanged": 0,
+        "manifestChanged": false,
+        "aggregateHashMatched": true
+      }
+    },
+    {
+      "sequence": 2,
+      "verifiedAtUtc": "2026-11-01T00:00:00Z",
+      "trigger": "second firmware update installed and device rebooted",
+      "firmwareVersion": "3.29.1.0",
+      "firmwareSource": "/etc/os-release IMG_VERSION",
+      "hostOsVersion": "Codex Linux 6.0.112 (wrynose)",
+      "kernel": "Linux imx8mm-ferrari 6.12.49 aarch64",
+      "buildStamp": "20261028104944",
+      "firmwareVersionNote": "IMG_VERSION is the reMarkable release version. os-release VERSION_ID on this device is 6.0.112, which is the underlying Codex Linux (OpenEmbedded) version and NOT the firmware -- see the note in tools/Get-DeviceTemplateCorpus.ps1. /usr/share/remarkable/update.conf does not exist on this firmware.",
+      "method": "manual scp of /usr/share/remarkable/templates captured BEFORE the owner re-applied his custom templates, so this capture was natively pristine: 65 stock templates, no user entries in the manifest",
+      "result": "IDENTICAL",
+      "detail": {
+        "filesAdded": 0,
+        "filesRemoved": 0,
+        "filesChanged": 0,
+        "manifestChanged": false,
+        "aggregateHashMatched": true,
+        "formatVersionUnchanged": true,
+        "jsonKeySetUnchanged": true,
+        "itemTypeCountsUnchanged": true,
+        "pathCommandCountsUnchanged": true,
+        "newItemTypes": 0,
+        "newOperators": 0,
+        "newBuiltInVariables": 0
+      }
+    }
+  ],
+
+  "verificationSummary": "The stock corpus is byte-identical across three firmware generations: the March 2026 capture, the release preceding 3.29.1.0, and 3.29.1.0 itself. Both updates wiped the owner's custom templates while leaving all 65 stock templates untouched -- the product's core use case (PRD 4.6), now observed rather than assumed. Because the content is identical, no duplicate snapshot directories were created; these verification records are the artefact instead.",
+  "findings": "docs/template-format-findings.md"
+}

@@ -1,7 +1,10 @@
 # ADR-0006 — Scope the expression grammar from the reference corpus
 
-- **Status:** Proposed
+- **Status:** Proposed — **no longer blocked.** Corpus refreshed 2026-11-01 and confirmed current as of firmware **3.29.1.0**; all conclusions hold. Ready for the owner's review
 - **Date:** 2026-10-16
+- **Revision 2026-11-01:** evidence table corrected for measurement scope, refresh result
+  recorded, and the item-type conclusion narrowed. Full findings:
+  [`docs/template-format-findings.md`](../../template-format-findings.md)
 - **Resolves:** open decision #1 in `research_scheduling.md` §15 and `PRD.md` §14.1
 
 ## Context
@@ -16,28 +19,30 @@ This was previously a guess. It no longer needs to be — the repository already
 **65-template corpus** in `research/reference_material/`, which is the best available
 sample of what real templates actually use.
 
-**Caveat on the evidence below.** That corpus was captured around 2026-03-01 and the
-capture did not record the device firmware version. Device firmware has moved from roughly
-3.20 to 3.28+ since then. reMarkable ships new stock templates with releases and could
-have changed `formatVersion`, added item types, or added built-in variables in that
-window. The measurements below are therefore **provisional and dated**, and this ADR
-cannot be accepted until the corpus is refreshed (see "Required corpus refresh" below).
-Measured against the March 2026 corpus:
+**The figures below are the corrected, stock-only measurements**, confirmed against the
+2026-11-01 refresh. The original draft of this ADR counted some features across stock
+*plus* the owner's three custom templates and others across stock only, without stating
+which — so several counts were higher than the stock corpus warrants. No conclusion
+changed, but a corpus-derived decision must state its scope precisely. Stock and user
+templates are now stored separately so the error cannot recur.
+
+Measured across the 65 stock templates:
 
 | Feature | Occurrences in corpus |
 |---|---|
-| Item types | `path` 128, `group` 124, `text` 67 — **exactly the three documented**, no others |
+| Item types | `path` 118, `group` 115, `text` 60 — **exactly the three documented**, no others |
 | Ternary `? :` | present in 55 of 65 template files |
 | `<` | 131 |
 | `>` | 91 |
 | `||` | 24 |
 | `&&`, `==`, `!=`, `<=`, `>=` | **0 — none appear anywhere** |
-| `templateWidth` | 420 |
-| `templateHeight` | 239 |
-| `parentWidth` | 82 |
-| `parentHeight` | 26 |
+| `templateWidth` | 384 |
+| `templateHeight` | 217 |
+| `parentWidth` | 76 |
+| `parentHeight` | 23 |
 | `paperOriginX` | 2 |
 | `paperOriginY` | 0 — documented in the PRD but never used |
+| `formatVersion` | `1` on all 65 files |
 
 So the grammar in active use is narrower than the PRD assumed: arithmetic, parens,
 variables, `<`, `>`, `||`, and ternary. Ternaries are pervasive, which confirms they are
@@ -57,8 +62,12 @@ them would save no meaningful work while guaranteeing a crash on a plausible inp
 
 What the corpus evidence *does* decide:
 
-1. **Only three item types** are implemented. An unknown `type` is a validation error, not
-   a silently ignored node.
+1. **Only three item *types*** are implemented. An unknown `type` is a validation error,
+   not a silently ignored node. This constrains the type set only — **not the fields those
+   types carry**, which the November refresh found to be richer than `PRD.md` §6.5
+   documents (fill and stroke colour, antialiasing, cubic Bézier and close-path commands).
+   See [`template-format-findings.md`](../../template-format-findings.md) §3 and
+   [ADR-0007](0007-preview-rendering.md).
 2. **Ternaries are core, not optional** — they ship in the first version of the engine.
 3. **Constants are order-dependent** and may reference earlier constants. Evaluation
    follows declaration order; a forward reference is a validation error.
@@ -71,10 +80,59 @@ What the corpus evidence *does* decide:
 The corpus becomes the engine's golden-file test suite: every one of the 65 templates must
 parse, and every expression in them must evaluate to a finite number.
 
-## Required corpus refresh before acceptance
+## Corpus refresh result (2026-11-01) — blocker cleared
+
+Two firmware updates landed in quick succession, giving three captures across three
+firmware generations. Outcome: **the format did not drift, and every conclusion in this
+ADR holds.**
+
+| Capture | Firmware | Result |
+|---|---|---|
+| 2026-03-01 | not recorded (older) | baseline |
+| 2026-11-01 #1 | not recorded — the release preceding 3.29.1.0 | identical |
+| 2026-11-01 #2 | **3.29.1.0** — confirmed from `/etc/os-release` `IMG_VERSION` | identical |
+
+| Check | Result |
+|---|---|
+| Stock template files | 65 → 65 → 65, none added, none removed |
+| Files with changed content | **0** |
+| `templates.json` | identical — 11,949 bytes, 79 entries |
+| Aggregate SHA-256 over all 66 files | **identical across all three** |
+| `formatVersion` | `1`, unchanged |
+| JSON key set | no differences |
+| New item types, operators, built-in variables | none |
+
+The corpus is therefore current as of firmware 3.29.1.0, which was the condition for
+accepting this ADR. Three generations without change does not *prove* stability —
+`formatVersion` exists so reMarkable can change the format — but it establishes that the
+format is not volatile, so the corpus is a sound basis for the Domain design.
+
+Three things came out of the refresh beyond the confirmation:
+
+1. **A measurement scope error in this ADR**, corrected in the evidence table above —
+   some counts had included the owner's custom templates.
+2. **The PRD's item schema is incomplete** — undocumented top-level keys
+   (`supportedDevices`, `iconData`) and path fields (`fillColor`, `strokeColor`,
+   `antialiasing`), plus `C` and `Z` path commands. This does not touch the expression
+   grammar, but it forced a correction to [ADR-0007](0007-preview-rendering.md).
+3. **A firmware-detection bug in the harvest script**, which would have labelled snapshots
+   with the host OS version instead of the firmware release.
+
+Full detail: [`template-format-findings.md`](../../template-format-findings.md).
+
+Both updates wiped the owner's custom templates while leaving all 65 stock templates
+byte-identical — the product's core use case (`PRD.md` §4.6), now observed twice rather
+than assumed.
+
+**One caveat carried forward:** the harvest script has still never run successfully
+end-to-end. The detection bug is fixed, but the captures were taken manually, so the
+script must not be trusted until it has been exercised against a device.
+
+## Required corpus refresh procedure
 
 The whole decision rests on the corpus, so the corpus must be current. This is a
-**Phase 0 prerequisite, ahead of any MVP work** (see `overview.md` §6.0).
+**Phase 0 prerequisite, ahead of any MVP work** (see `overview.md` §6.0), and must be
+repeated after **every** firmware update.
 
 1. Re-harvest `/usr/share/remarkable/templates` — every `.template` file plus
    `templates.json` — from the device on its current firmware.
