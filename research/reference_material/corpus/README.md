@@ -13,24 +13,41 @@ becomes the golden-file fixture set for the test suite.
 ## Layout
 
 ```
-corpus/
-  <date>_firmware-<version>/
-    capture.json      provenance: when, which firmware, counts, integrity, verifications
-    templates.json    the pristine stock manifest, no user entries merged
-    stock/            templates reMarkable ships      ("author": "reMarkable")
-    user/             the owner's custom templates    ("author": "DAdent")
-    other/            anything unexpected (only present if the device had something new)
+research/reference_material/
+  user_templates/           the owner's custom templates ("author": "DAdent")
+                            NOT in any snapshot -- see rule 3
+  corpus/
+    <date>_firmware-<version>/
+      capture.json          provenance: when, which firmware, counts, integrity, format
+      templates.json        the stock manifest as the firmware left it
+      stock/                templates reMarkable ships ("author": "reMarkable")
+      other/                anything unexpected (present only if the device had something new)
 ```
 
-## Two rules
+## Three rules
 
-**1. Snapshots are never overwritten.** Each firmware gets its own directory. Keeping old
-captures alongside new ones is what makes format drift *visible* — "did reMarkable change
-the format?" becomes a question answered by diffing directories rather than by guessing.
+**1. One directory per firmware, never overwritten.** Including when the content turns out
+identical. The directory name is the index — if someone cannot find the corpus for
+firmware *X* by looking at directory names, the scheme has failed, and burying the version
+inside `capture.json` does exactly that. Git stores identical content once, so a snapshot
+whose files match an existing one **costs no repository storage** — only tree entries.
+There is therefore no reason to skip it.
 
 **2. Stock and user templates stay separate.** The original ADR-0006 measurements
-conflated them, reporting counts higher than the stock corpus warranted. Splitting by the
-template's own `author` field makes that error structurally impossible to repeat.
+conflated them and reported counts higher than the stock corpus warranted. Splitting by
+the template's own `author` field makes that error structurally impossible to repeat.
+
+**3. User templates live outside the corpus entirely.** They are the owner's authored
+files, not firmware artefacts — they do not change when the device updates. Filing them
+under a snapshot was a category error that would have forced them to be duplicated into
+every future snapshot. They live in `research/reference_material/user_templates/`.
+
+## Which snapshot to use
+
+**Use the canonical one** — the most recent snapshot with a known firmware version and
+clean provenance, flagged `"isCanonical": true` in its `capture.json`. It is the
+golden-file fixture source for the test suite. Older snapshots are kept as historical
+baselines and for drift diffs, not as the working reference.
 
 ## Refreshing after a firmware update
 
@@ -59,19 +76,29 @@ manifest to get back to a comparable state, which makes the capture's provenance
 about drift — which is precisely why the March 2026 capture is labelled
 `firmware-unknown`, and why that was logged as a defect rather than quietly tolerated.
 
-If the content turns out identical to an existing snapshot, **do not create a duplicate
-directory.** Add a `verifications[]` entry to the existing `capture.json` instead: the
-useful information is "this firmware did not change anything," not a second copy of
-identical bytes.
+**Create the directory even when the content is identical** (rule 1). Record the
+comparison result in `capture.json` under `comparisonToPreviousSnapshot` and mark the new
+snapshot canonical. An identical snapshot is still evidence — it is how "the format did
+not change in release *X*" becomes a checkable fact rather than a memory.
+
+The only case for *not* creating a directory is **weak provenance**: a capture that needed
+cleanup to be comparable, or whose firmware version was never recorded, cannot serve as a
+reference. Log it as a `verifications[]` entry on the snapshot it was compared against
+instead. That is why the release between the March and 3.29.1.0 captures has no directory
+of its own.
 
 ## Current snapshots
 
-| Snapshot | Firmware | Stock | User | Manifest | Verified against |
-|---|---|---|---|---|---|
-| `2026-03-01_firmware-unknown` | unknown — not recorded | 65 | 3 | 79 entries | **3.29.1.0** and the release before it — byte-identical to both |
+| Snapshot | Firmware | Stock | Manifest | Role |
+|---|---|---|---|---|
+| `2026-11-01_firmware-3.29.1.0` | **3.29.1.0** | 65 | 79 entries | **Canonical** — known firmware, natively pristine capture |
+| `2026-03-01_firmware-unknown` | unknown — not recorded | 65 | 79 entries | Historical baseline; firmware unknown, manifest provenance indirect |
 
-The stock corpus is byte-identical across **three firmware generations**, so one directory
-serves all of them. `capture.json` carries the verification log.
+Both are **byte-identical** (aggregate `d23ec580…`), and a third capture — the release
+between them — was also identical and is recorded as a verification entry in the March
+snapshot rather than as its own directory, because its provenance was indirect.
+
+So: the stock corpus has not changed across **three firmware generations**.
 
 ## Finding the firmware version
 
