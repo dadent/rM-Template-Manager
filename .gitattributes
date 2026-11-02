@@ -1,0 +1,52 @@
+# Line-ending normalization.
+#
+# This file exists to override a Windows core.autocrlf=true, which would otherwise
+# check files out with CRLF. Two reasons that would be a defect here, not a nuisance:
+#
+#   1. .template files and templates.json are uploaded verbatim to a Linux device and
+#      MUST be LF-only with no BOM (PRD §10.1). A CRLF checkout would mean committing
+#      LF, editing in CRLF, and uploading CRLF.
+#   2. .editorconfig declares end_of_line = lf (coding-standards §14.1). Git and the
+#      editor disagreeing about line endings produces diff noise that hides real changes.
+#
+# Normalize to LF in the repository AND in the working tree.
+* text=auto eol=lf
+
+# Device-bound formats — never let these become CRLF.
+*.template  text eol=lf
+*.json      text eol=lf
+
+# Source and docs.
+*.cs      text eol=lf diff=csharp
+*.csproj  text eol=lf
+*.sln     text eol=lf
+*.props   text eol=lf
+*.targets text eol=lf
+*.xaml    text eol=lf
+*.md      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.editorconfig text eol=lf
+
+# Windows-only scripts genuinely prefer CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary — never touch, never diff as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.exe  binary
+*.dll  binary
+*.ttf  binary
+*.otf  binary
+*.woff  binary
+*.woff2 binary
+
+# Generated/vendored paths excluded from language statistics and diff noise.
+research/reference_material/** linguist-vendored
