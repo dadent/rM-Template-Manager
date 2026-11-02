@@ -1,0 +1,74 @@
+{
+  "snapshotId": "2026-11-01_firmware-3.29.1.0",
+  "isCanonical": true,
+  "canonicalNote": "This is the authoritative snapshot: the firmware version is known and the capture is natively pristine. Prefer it over 2026-03-01_firmware-unknown for any argument about the format, and use it as the golden-file fixture source when the test suite is created.",
+
+  "capturedAtUtc": "2026-11-01T00:00:00Z",
+  "capturedAtPrecision": "date-only",
+  "capturedBy": "manual scp: scp \"root@10.11.99.1:/usr/share/remarkable/templates/*\" .",
+  "capturedByNote": "tools/Get-DeviceTemplateCorpus.ps1 failed on first use and was not debugged; the manual path was quicker. The script's firmware-detection bug was fixed using the device output recorded below, but the script itself remains unexercised end-to-end.",
+
+  "deviceModel": "reMarkable Paper Pro (imx8mm-ferrari)",
+  "deviceTemplatePath": "/usr/share/remarkable/templates",
+
+  "firmwareVersion": "3.29.1.0",
+  "firmwareSource": "/etc/os-release IMG_VERSION",
+  "hostOsVersion": "Codex Linux 6.0.112 (wrynose)",
+  "kernel": "Linux imx8mm-ferrari 6.12.49+git-imx8mm-ferrari-geadc2c7b4701 aarch64",
+  "buildStamp": "20261028104944",
+  "firmwareVersionNote": "IMG_VERSION is the reMarkable release version. VERSION_ID on this device is 6.0.112, which is the underlying Codex Linux (OpenEmbedded) build and NOT the firmware -- using it would label this snapshot plausibly and wrongly. /usr/share/remarkable/update.conf does not exist on this firmware. The distro name 'Codex Linux' is reMarkable's OpenEmbedded build and is unrelated to the Codex CLI used as a reviewer in ADR-0009.",
+
+  "provenance": {
+    "capturedBeforeUserTemplatesReapplied": true,
+    "note": "Taken straight off the device after the update and reboot, before the owner re-applied his custom templates. The capture is therefore natively pristine -- 65 stock templates and a manifest with no user entries -- requiring no cleanup to be comparable. This is what makes it better evidence than the March capture, whose manifest was restored from a saved-aside copy."
+  },
+
+  "counts": {
+    "stockTemplates": 65,
+    "manifestEntries": 79,
+    "manifestBytes": 11949
+  },
+
+  "integrity": {
+    "algorithm": "sha256",
+    "aggregate": "d23ec580327e03086bc81448cc93912c",
+    "aggregateScope": "sha256 of the concatenated per-file sha256 digests of stock/*.template plus templates.json, filenames sorted; truncated to 32 hex chars",
+    "matchesSnapshots": ["2026-03-01_firmware-unknown"],
+    "perFileHashesOmitted": "Git content-hashes every file, so per-file digests here would duplicate that with no benefit. The aggregate exists because it is a single value comparable across snapshots."
+  },
+
+  "comparisonToPreviousSnapshot": {
+    "against": "2026-03-01_firmware-unknown",
+    "result": "IDENTICAL",
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesChanged": 0,
+    "manifestChanged": false,
+    "aggregateHashMatched": true,
+    "formatVersionUnchanged": true,
+    "jsonKeySetUnchanged": true,
+    "itemTypeCountsUnchanged": true,
+    "pathCommandCountsUnchanged": true
+  },
+
+  "observedFormat": {
+    "formatVersion": 1,
+    "itemTypes": { "path": 118, "group": 115, "text": 60 },
+    "pathCommands": { "L": 382, "C": 260, "M": 233, "Z": 54 },
+    "pathFields": { "fillColor": 13, "strokeWidth": 10, "antialiasing": 6, "strokeColor": 2 },
+    "topLevelKeys": { "supportedDevices": 16, "iconData": 1 },
+    "operators": { "<": 131, ">": 91, "||": 24, "&&": 0, "==": 0, "!=": 0, "<=": 0, ">=": 0 },
+    "builtInVariables": { "templateWidth": 384, "templateHeight": 217, "parentWidth": 76, "parentHeight": 23, "paperOriginX": 2, "paperOriginY": 0 },
+    "ternaryFiles": 55,
+    "repeatDeclarations": 102
+  },
+
+  "contents": {
+    "stock/": "The 65 templates reMarkable ships on this firmware. All declare \"author\": \"reMarkable\".",
+    "templates.json": "The stock manifest exactly as the firmware left it. 79 entries for 65 files: a filename may appear twice, once per orientation."
+  },
+
+  "userTemplatesNote": "The owner's custom templates are deliberately NOT in this snapshot. They are not firmware artefacts, so they live in research/reference_material/user_templates/ instead of being duplicated into every snapshot.",
+
+  "findings": "docs/template-format-findings.md"
+}
